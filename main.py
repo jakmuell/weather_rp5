@@ -4,8 +4,7 @@ from requests import Session
 from requests.models import Response
 from time import sleep
 
-import rp5_ru_headers
-import rp5_md_headers
+import headers
 
 BROWSERS = ['Chrome', 'Firefox', 'Opera', 'Edge']
 URL_BASE = 'https://rp5.ru'
@@ -36,7 +35,7 @@ def prepare_weatherdownload(station_id, start_date: date,
         phpsessid = get_phpsessid(current_session.cookies.items())
 
     if phpsessid is not None:
-        current_session.headers = rp5_ru_headers.get_header(phpsessid, choice(BROWSERS))
+        current_session.headers = headers.get_header(phpsessid, choice(BROWSERS))
     else:
         print('Error: phpsessid is None!')
 
