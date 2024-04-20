@@ -1,6 +1,10 @@
 from datetime import date
 from random import choice
+import os
+import shutil
+import gzip
 from requests import Session
+import requests
 from requests.models import Response
 from time import sleep
 
@@ -16,13 +20,20 @@ def get_phpsessid(items):
             phpsessid = x[1]
     return phpsessid
 
+
+def unpack_gz(gz_file_path, destination_path):
+    with gzip.open(gz_file_path, 'rb') as f_in:
+        with open(destination_path, 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+    os.remove(gz_file_path)
+    
+    
 def prepare_weatherdownload(station_id, start_date: date,
                             last_date: date,
-                            is_metar: bool) -> None:
+                            is_metar: bool) -> str:
     current_session = Session()
     try:
         if not current_session.cookies.items():
-            print('Performing get operation')
             current_session.get(URL_BASE)
     except Exception as e:
         print(f'{URL_BASE=}')
@@ -71,15 +82,32 @@ def prepare_weatherdownload(station_id, start_date: date,
                 'f_pe1': 2,
                 'lng_id': 1
             }
-            print(data)
             response = current_session.post(
                 f'{URL_BASE}/responses/reFileSynop.php', data
             )
-        print(response, response.text.find('http'))
-        print(response.text)
         count -= 1
         sleep(delay)
         delay += 3
+    return response.text
+
+def download_weather(station_id, start_date: date,
+                     last_date: date, is_metar: bool) -> None:
+    response_text = prepare_weatherdownload(station_id, start_date,
+                                            last_date, is_metar)
+    url_start_idx = response_text.find('https')
+    url_end_idx = response_text.find(' download')
+    url = response_text[url_start_idx:url_end_idx]
+    print(url)
+    filename = (f'weather_{station_id}_{start_date.strftime("%Y%m%d")}_'
+                f'{last_date.strftime("%Y%m%d")}.csv')
+    response = requests.get(url, allow_redirects=True)
+    if response.status_code != 200:
+        print("Cannot download file.")
+        return None
+    with open(f'{filename}.gz', 'wb') as file:
+        file.write(response.content)
+        print('File downloaded successfully.')
+    unpack_gz(gz_file_path=f'{filename}.gz', destination_path=filename)
 
 if __name__ == '__main__':
 
@@ -87,13 +115,15 @@ if __name__ == '__main__':
     station_id = '4656'  # Sao Paulo METAR
     start_date = date(2024,2,1)
     end_date = date(2024,2,10)
-    prepare_weatherdownload(station_id, start_date, end_date, True)
+    download_weather(station_id, start_date, end_date, True)
+    # prepare_weatherdownload(station_id, start_date, end_date, True)
 
     # Test 2 (not METAR)
-    wmo_id = 83781
+    wmo_id = 10384
     start_date = date(2024,2,1)
     end_date = date(2024,2,10)
-    prepare_weatherdownload(wmo_id, start_date, end_date, False)
+    download_weather(wmo_id, start_date, end_date, False)
+    # prepare_weatherdownload(wmo_id, start_date, end_date, False)
 
 
 
