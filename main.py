@@ -8,6 +8,7 @@ import rp5_ru_headers
 import rp5_md_headers
 
 BROWSERS = ['Chrome', 'Firefox', 'Opera', 'Edge']
+URL_BASE = 'https://rp5.ru'
 
 def get_phpsessid(items):
     phpsessid = None
@@ -19,34 +20,26 @@ def get_phpsessid(items):
 def prepare_weatherdownload(station_id, start_date: date,
                             last_date: date,
                             is_metar: bool) -> None:
-    """
-    Funktioniert bisher nur für METAR Stationen, alle anderen später
-    """
-
-    url_base = "https://rp5.ru"
     current_session = Session()
     try:
         if not current_session.cookies.items():
-            print("Performing get operation")
-            current_session.get(url_base)
+            print('Performing get operation')
+            current_session.get(URL_BASE)
     except Exception as e:
-        print(f"{url_base=}")
-        print(f"Error in get: {e}")
+        print(f'{URL_BASE=}')
+        print(f'Error in get: {e}')
     phpsessid = get_phpsessid(current_session.cookies.items())
     if phpsessid is None:
         current_session.close()
         current_session = Session()
-        current_session.get(url_base)
+        current_session.get(URL_BASE)
         phpsessid = get_phpsessid(current_session.cookies.items())
 
-    if url_base == 'https://rp5.ru' and phpsessid is not None:
-        current_session.headers = rp5_ru_headers.get_header(phpsessid, choice(BROWSERS))
-    elif url_base == 'https://rp5.md' and phpsessid is not None:
-        current_session.headers = rp5_md_headers.get_header(phpsessid, 'Chrome')
-    elif phpsessid is not None:
+    if phpsessid is not None:
         current_session.headers = rp5_ru_headers.get_header(phpsessid, choice(BROWSERS))
     else:
-        print("Error: phpsessid is None!")
+        print('Error: phpsessid is None!')
+
     response: Response = None
     count = 5
     delay = 3
@@ -65,7 +58,7 @@ def prepare_weatherdownload(station_id, start_date: date,
                 'type': 'csv'
             }
             response = current_session.post(
-                f"{url_base}/responses/reFileMetar.php", data
+                f'{URL_BASE}/responses/reFileMetar.php', data
             )
         else:
             data = {
@@ -81,7 +74,7 @@ def prepare_weatherdownload(station_id, start_date: date,
             }
             print(data)
             response = current_session.post(
-                f"{url_base}/responses/reFileSynop.php", data
+                f'{URL_BASE}/responses/reFileSynop.php', data
             )
         print(response, response.text.find('http'))
         print(response.text)
@@ -89,10 +82,10 @@ def prepare_weatherdownload(station_id, start_date: date,
         sleep(delay)
         delay += 3
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
     # Test 1 (METAR)
-    station_id = "4656"  # Sao Paulo METAR
+    station_id = '4656'  # Sao Paulo METAR
     start_date = date(2024,2,1)
     end_date = date(2024,2,10)
     prepare_weatherdownload(station_id, start_date, end_date, True)
