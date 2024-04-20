@@ -1,6 +1,6 @@
 import pandas as pd
 
-def filter_csv(input_file, output_file):
+def delete_comments_from_csv(input_file, output_file):
 
     with open(input_file, 'r', newline='') as infile:
         csv_content = infile.read()
@@ -28,11 +28,10 @@ def format_dataframe(csv_path: str) -> pd.DataFrame:
         'RRR': 'precip'
     }
     df = df.rename(columns=rename_dict, inplace=False)
-    print(df)
     return df
 
 # Example usage:
 input_file = r'C:\Users\jakob\Downloads\10384.01.02.2024.10.02.2024.1.0.0.en.utf8.00000000.csv\10384.01.02.2024.10.02.2024.1.0.0.en.utf8.00000000.csv'
 output_file = r'C:\Users\jakob\Downloads\10384.01.02.2024.10.02.2024.1.0.0.en.utf8.00000000.csv\10384.01.02.2024.10.02.2024.1.0.0.en.utf8.00000000_v2.csv'
-filter_csv(input_file, output_file)
+delete_comments_from_csv(input_file, output_file)
 df = format_dataframe(output_file)

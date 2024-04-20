@@ -1,3 +1,4 @@
+from datetime import date
 import os
 import gzip
 import shutil
@@ -23,3 +24,10 @@ def get_phpsessid(items):
         if x[0] == 'PHPSESSID':
             phpsessid = x[1]
     return phpsessid
+
+
+def get_csv_path(station_id, start: date, end: date) -> str:
+    dir = get_download_directory()
+    filename = (f'weather_{station_id}_{start.strftime("%Y%m%d")}_'
+                f'{end.strftime("%Y%m%d")}.csv')
+    return  os.path.join(dir, filename)

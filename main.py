@@ -6,8 +6,20 @@ import requests
 from requests.models import Response
 from time import sleep
 
-from utils import get_download_directory, unpack_gz
+import pandas as pd
 
+from downloader import download_weather
+from cleanup import delete_comments_from_csv, format_dataframe
+from utils import get_csv_path
+
+def get_weather_data(
+        station_id, start: date, end: date, is_metar: bool) -> pd.DataFrame:
+    download_weather(station_id, start, end, is_metar)
+    csv_path = get_csv_path(station_id, start, end)
+    delete_comments_from_csv(csv_path, csv_path)
+    df = format_dataframe(csv_path)
+    os.remove(csv_path)
+    return df
 
 
 if __name__ == '__main__':
@@ -16,15 +28,15 @@ if __name__ == '__main__':
     station_id = '4656'  # Sao Paulo METAR
     start_date = date(2024,2,1)
     end_date = date(2024,2,10)
-    download_weather(station_id, start_date, end_date, True)
-    # prepare_weatherdownload(station_id, start_date, end_date, True)
+    df = get_weather_data(station_id, start_date, end_date, True)
+    print(df)
 
     # Test 2 (not METAR)
     wmo_id = 10384
     start_date = date(2024,2,1)
     end_date = date(2024,2,10)
-    download_weather(wmo_id, start_date, end_date, False)
-    # prepare_weatherdownload(wmo_id, start_date, end_date, False)
+    df = get_weather_data(wmo_id, start_date, end_date, False)
+    print(df)
 
 
 

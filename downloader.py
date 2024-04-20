@@ -6,14 +6,14 @@ import requests
 from requests.models import Response
 from time import sleep
 
-from utils import get_phpsessid, unpack_gz, get_download_directory
+from utils import get_phpsessid, unpack_gz, get_download_directory, get_csv_path
 import headers
 
 BROWSERS = ['Chrome', 'Firefox', 'Opera', 'Edge']
 URL_BASE = 'https://rp5.ru'
 
-def prepare_weatherdownload(station_id, start_date: date,
-                            last_date: date,
+
+def prepare_weatherdownload(station_id, start_date: date, last_date: date,
                             is_metar: bool) -> str:
     """
     This function sends the Post request which is necessary in preparation
@@ -35,7 +35,8 @@ def prepare_weatherdownload(station_id, start_date: date,
         phpsessid = get_phpsessid(current_session.cookies.items())
 
     if phpsessid is not None:
-        current_session.headers = headers.get_header(phpsessid, choice(BROWSERS))
+        current_session.headers = headers.get_header(phpsessid,
+                                                     choice(BROWSERS))
     else:
         print('Error: phpsessid is None!')
 
@@ -44,7 +45,7 @@ def prepare_weatherdownload(station_id, start_date: date,
     delay = 3
     while (response is None or response.text.find('http') == -1) and count > 0:
         if is_metar:
-            data={
+            data = {
                 'metar': station_id,
                 'a_date1': start_date.strftime('%d.%m.%Y'),
                 'a_date2': last_date.strftime('%d.%m.%Y'),
@@ -57,8 +58,7 @@ def prepare_weatherdownload(station_id, start_date: date,
                 'type': 'csv'
             }
             response = current_session.post(
-                f'{URL_BASE}/responses/reFileMetar.php', data
-            )
+                f'{URL_BASE}/responses/reFileMetar.php', data)
         else:
             data = {
                 'wmo_id': station_id,
@@ -72,29 +72,26 @@ def prepare_weatherdownload(station_id, start_date: date,
                 'lng_id': 1
             }
             response = current_session.post(
-                f'{URL_BASE}/responses/reFileSynop.php', data
-            )
+                f'{URL_BASE}/responses/reFileSynop.php', data)
         count -= 1
         sleep(delay)
         delay += 3
     return response.text
 
 
-def download_weather(station_id, start_date: date,
-                     last_date: date, is_metar: bool) -> None:
+def download_weather(station_id, start_date: date, last_date: date,
+                     is_metar: bool) -> None:
     """
     This will download the weather data for a given station and time period
     as a csv file in the download directory of the computer.
     """
     os.chdir(get_download_directory())
-    response_text = prepare_weatherdownload(station_id, start_date,
-                                            last_date, is_metar)
+    response_text = prepare_weatherdownload(station_id, start_date, last_date,
+                                            is_metar)
     url_start_idx = response_text.find('https')
     url_end_idx = response_text.find(' download')
     url = response_text[url_start_idx:url_end_idx]
-    print(url)
-    filename = (f'weather_{station_id}_{start_date.strftime("%Y%m%d")}_'
-                f'{last_date.strftime("%Y%m%d")}.csv')
+    filename = get_csv_path(station_id, start_date, last_date)
     response = requests.get(url, allow_redirects=True)
     if response.status_code != 200:
         print("Cannot download file.")
