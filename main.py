@@ -1,10 +1,5 @@
 from datetime import date
 import os
-from random import choice
-from requests import Session
-import requests
-from requests.models import Response
-from time import sleep
 
 import pandas as pd
 

@@ -6,7 +6,10 @@ import requests
 from requests.models import Response
 from time import sleep
 
-from utils import get_phpsessid, unpack_gz, get_download_directory, get_csv_path
+from utils import (get_phpsessid,
+                   unpack_gz,
+                   get_download_directory,
+                   get_csv_path)
 import headers
 
 BROWSERS = ['Chrome', 'Firefox', 'Opera', 'Edge']
