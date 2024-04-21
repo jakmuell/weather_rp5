@@ -1,10 +1,14 @@
+"""
+This module contains the functions for sending post requests to rp5 and for
+downloading the zip folder of weather data from the site
+"""
 from datetime import date
 import os
 from random import choice
-from requests import Session
+from time import sleep
+
 import requests
 from requests.models import Response
-from time import sleep
 
 from utils import (get_phpsessid,
                    unpack_gz,
@@ -23,7 +27,7 @@ def prepare_weatherdownload(station_id, start_date: date, last_date: date,
     for the actual download and returns the response of the post request
     which we can later use to retrieve the download url.
     """
-    current_session = Session()
+    current_session = requests.Session()
     try:
         if not current_session.cookies.items():
             current_session.get(URL_BASE)
@@ -33,7 +37,7 @@ def prepare_weatherdownload(station_id, start_date: date, last_date: date,
     phpsessid = get_phpsessid(current_session.cookies.items())
     if phpsessid is None:
         current_session.close()
-        current_session = Session()
+        current_session = requests.Session()
         current_session.get(URL_BASE)
         phpsessid = get_phpsessid(current_session.cookies.items())
 
@@ -95,7 +99,7 @@ def download_weather(station_id, start_date: date, last_date: date,
     url_end_idx = response_text.find(' download')
     url = response_text[url_start_idx:url_end_idx]
     filename = get_csv_path(station_id, start_date, last_date)
-    response = requests.get(url, allow_redirects=True)
+    response = requests.get(url, allow_redirects=True, timeout=20)
     if response.status_code != 200:
         print("Cannot download file.")
         return None
@@ -103,3 +107,4 @@ def download_weather(station_id, start_date: date, last_date: date,
         file.write(response.content)
         print('File downloaded successfully.')
     unpack_gz(gz_file_path=f'{filename}.gz', destination_path=filename)
+    return None
