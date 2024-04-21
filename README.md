@@ -12,7 +12,7 @@ pip install weather_rp5
 ## Example Usage
 
 To get records for the weather station in Sao Paulo starting on February 1, 2024 and ending on April 1, 2024,
-you may use the following code (provided you have import pandas and date from the datetime module):
+you may use the following code (provided you have imported pandas and date from the datetime module):
 ```
 url = 'https://rp5.ru/Weather_archive_in_Sao_Paulo'
 wmo_id = get_station_id(url)
