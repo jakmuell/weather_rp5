@@ -31,3 +31,10 @@ def get_csv_path(station_id, start: date, end: date) -> str:
     filename = (f'weather_{station_id}_{start.strftime("%Y%m%d")}_'
                 f'{end.strftime("%Y%m%d")}.csv')
     return  os.path.join(dir, filename)
+
+
+def extract_number(string):
+    for i, char in enumerate(string):
+        if not char.isdigit():
+            return string[:i]
+    return string
