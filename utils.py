@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 import os
 import gzip
 import shutil
@@ -38,3 +38,22 @@ def extract_number(string):
         if not char.isdigit():
             return string[:i]
     return string
+
+
+def split_time_period(start_date, end_date, num_intervals):
+    total_days = (end_date - start_date).days
+    interval_days = total_days / num_intervals
+    start_dates = []
+    end_dates = []
+
+    for i in range(num_intervals):
+        start = start_date + timedelta(days=interval_days * i)
+        start_dates.append(start)
+        if i == num_intervals - 1:
+            end = end_date
+        else:
+            end = start_date + timedelta(days=interval_days * (i + 1) - 1)
+        end_dates.append(end)
+        print(start, end)
+
+    return start_dates, end_dates

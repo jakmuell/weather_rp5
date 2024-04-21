@@ -13,9 +13,11 @@ def delete_comments_from_csv(input_file, output_file):
         outfile.write(new_csv_content)
 
 def format_dataframe(csv_path: str) -> pd.DataFrame:
-    df = pd.read_csv(csv_path, sep=';', decimal='.', index_col=False)
+    df = pd.read_csv(csv_path, sep=';', decimal='.', index_col=False,
+                     on_bad_lines='skip')
     df = df.rename(columns={df.columns[0]: 'date_time'}, inplace=False)
-    df['date_time'] = pd.to_datetime(df['date_time'])
+    df['date_time'] = pd.to_datetime(
+        df['date_time'], format='%d.%m.%Y %H:%M')
     relevant_columns = ['date_time', 'T', 'U', 'Ff', 'ff10', 'ff3', 'Tn', 'Tx', 'RRR']
     df = df[[col for col in df.columns if col in relevant_columns]]
     rename_dict = {
