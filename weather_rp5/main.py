@@ -6,9 +6,9 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 
-from downloader import download_weather
-from cleanup import delete_comments_from_csv, format_dataframe
-from utils import get_csv_path, extract_number, split_time_period
+from .downloader import download_weather
+from .cleanup import delete_comments_from_csv, format_dataframe
+from .utils import get_csv_path, extract_number, split_time_period
 
 
 def get_station_id(rp5_link: str) -> int:

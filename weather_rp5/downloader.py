@@ -10,11 +10,11 @@ from time import sleep
 import requests
 from requests.models import Response
 
-from utils import (get_phpsessid,
-                   unpack_gz,
-                   get_download_directory,
-                   get_csv_path)
-import headers
+from .utils import (get_phpsessid,
+                    unpack_gz,
+                    get_download_directory,
+                    get_csv_path)
+from .headers import get_header
 
 BROWSERS = ['Chrome', 'Firefox', 'Opera', 'Edge']
 URL_BASE = 'https://rp5.ru'
@@ -42,8 +42,7 @@ def prepare_weatherdownload(station_id, start_date: date, last_date: date,
         phpsessid = get_phpsessid(current_session.cookies.items())
 
     if phpsessid is not None:
-        current_session.headers = headers.get_header(phpsessid,
-                                                     choice(BROWSERS))
+        current_session.headers = get_header(phpsessid, choice(BROWSERS))
     else:
         print('Error: phpsessid is None!')
 
