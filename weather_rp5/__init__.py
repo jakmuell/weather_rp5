@@ -1,1 +1,1 @@
-from main import get_weather_data, get_station_id
+from .main import get_weather_data, get_station_id
