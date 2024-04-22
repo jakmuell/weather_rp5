@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='weather_rp5',
-    version='1.0.0',
+    version='1.0.1',
     packages=find_packages(),
     author='Jakob Müller',
     author_email='jakob.mueller1004@gmail.com',
