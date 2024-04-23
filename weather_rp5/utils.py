@@ -89,6 +89,5 @@ def split_time_period(start_date: date, end_date: date,
         else:
             end = start_date + timedelta(days=interval_days * (i + 1) - 1)
         end_dates.append(end)
-        print(start, end)
 
     return start_dates, end_dates
