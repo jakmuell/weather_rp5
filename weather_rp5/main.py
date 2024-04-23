@@ -86,7 +86,7 @@ def get_weather_data(
         df_partial = _get_weather_data_for_short_range(
             station_id, start=start_partial, end=end_partial, is_metar=is_metar
         )
-        df = pd.concat([df, df_partial], axis='index')
+        df = pd.concat([df, df_partial], axis='index').reset_index(drop=True)
     return df
 
 
