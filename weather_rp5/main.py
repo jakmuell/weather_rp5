@@ -80,7 +80,7 @@ def get_weather_data(
             station_id, start, end, is_metar)
     num_partial_downloads = ceil(total_days/180)
     start_dates, end_dates = split_time_period(
-        start_date, end_date, num_intervals=num_partial_downloads)
+        start, end, num_intervals=num_partial_downloads)
     df = pd.DataFrame()
     for start_partial, end_partial in zip(start_dates, end_dates):
         df_partial = _get_weather_data_for_short_range(
@@ -110,3 +110,4 @@ if __name__ == '__main__':
     end_date = date(2024,2,10)
     df = get_weather_data(wmo_id, start_date, end_date, False)
     print(df)
+
