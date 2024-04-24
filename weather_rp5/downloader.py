@@ -3,6 +3,7 @@ This module contains the functions for sending post requests to rp5 and for
 downloading the zip folder of weather data from the site
 """
 from datetime import date
+import logging
 import os
 from random import choice
 from time import sleep
@@ -100,10 +101,10 @@ def download_weather(station_id, start_date: date, last_date: date,
     filename = get_csv_path(station_id, start_date, last_date)
     response = requests.get(url, allow_redirects=True, timeout=20)
     if response.status_code != 200:
-        print("Cannot download file.")
+        logging.error("Cannot download file.")
         return None
     with open(f'{filename}.gz', 'wb') as file:
         file.write(response.content)
-        print('File downloaded successfully.')
+        logging.debug('File downloaded successfully.')
     unpack_gz(gz_file_path=f'{filename}.gz', destination_path=filename)
     return None
