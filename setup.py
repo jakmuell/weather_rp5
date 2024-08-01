@@ -2,8 +2,9 @@ from setuptools import setup, find_packages
 
 setup(
     name='weather_rp5',
-    version='1.0.3',
+    version='1.0.4',
     packages=find_packages(),
+    install_requires=['pandas', 'requests', 'bs4'],
     author='Jakob Müller',
     author_email='jakob.mueller1004@gmail.com',
     description='Functions for retrieving weather data from rp5.ru',
