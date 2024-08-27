@@ -7,6 +7,7 @@ import logging
 import os
 from random import choice
 from time import sleep
+from typing import Literal
 
 import requests
 from requests.models import Response
@@ -22,7 +23,7 @@ URL_BASE = 'https://rp5.ru'
 
 
 def prepare_weatherdownload(station_id, start_date: date, last_date: date,
-                            is_metar: bool) -> str:
+                            is_metar: bool, encoding: Literal["ANSI", "UTF-8", "Unicode"]="UTF-8") -> str:
     """
     This function sends the Post request which is necessary in preparation
     for the actual download and returns the response of the post request
@@ -50,6 +51,10 @@ def prepare_weatherdownload(station_id, start_date: date, last_date: date,
     response: Response = None
     count = 5
     delay = 3
+    match encoding:
+        case "ANSI": f_pe1 = 1
+        case "UTF-8": f_pe1 = 2
+        case "Unicode": f_pe1 = 3
     while (response is None or response.text.find('http') == -1) and count > 0:
         if is_metar:
             data = {
@@ -60,7 +65,7 @@ def prepare_weatherdownload(station_id, start_date: date, last_date: date,
                 'f_ed4': 4,
                 'f_ed5': 20,
                 'f_pe': 1,
-                'f_pe1': 2,
+                'f_pe1': f_pe1,
                 'lng_id': 1,
                 'type': 'csv'
             }
@@ -75,7 +80,7 @@ def prepare_weatherdownload(station_id, start_date: date, last_date: date,
                 'f_ed4': 4,
                 'f_ed5': 20,
                 'f_pe': 1,
-                'f_pe1': 2,
+                'f_pe1': f_pe1,
                 'lng_id': 1
             }
             response = current_session.post(
