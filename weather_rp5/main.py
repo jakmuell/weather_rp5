@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
     # Test 2 (not METAR)
     wmo_id = get_station_id(
-        'https://rp5.ru/Weather_archive_in_Sao_Paulo'
+        'https://rp5.ru/Weather_archive_in_Nevers_(airport)'
     )
     # wmo_id = 10384
     start_date = date(2024,2,1)
