@@ -22,6 +22,14 @@ BROWSERS = ['Chrome', 'Firefox', 'Opera', 'Edge']
 URL_BASE = 'https://rp5.ru'
 
 
+class FailedPostRequestError(Exception):
+    """Raised when the weather data archive page shows an error message."""
+
+    def __init__(self, message="Website returned 'error' when selecting weather data to archive"):
+        super().__init__(message)
+
+
+
 def prepare_weatherdownload(station_id, start_date: date, last_date: date,
                             is_metar: bool, encoding: Literal["ANSI", "UTF-8", "Unicode"]="UTF-8") -> str:
     """
@@ -100,6 +108,8 @@ def download_weather(station_id, start_date: date, last_date: date,
     os.chdir(get_download_directory())
     response_text = prepare_weatherdownload(station_id, start_date, last_date,
                                             is_metar)
+    if "error" in response_text.lower():
+        raise FailedPostRequestError()
     url_start_idx = response_text.find('https')
     url_end_idx = response_text.find(' download')
     url = response_text[url_start_idx:url_end_idx]
