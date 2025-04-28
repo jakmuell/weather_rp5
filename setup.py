@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='weather_rp5',
-    version='1.1',
+    version='1.2',
     packages=find_packages(),
     install_requires=['pandas', 'requests', 'bs4'],
     author='Jakob Müller',

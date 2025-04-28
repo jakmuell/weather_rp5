@@ -105,7 +105,9 @@ def download_weather(station_id, start_date: date, last_date: date,
     This will download the weather data for a given station and time period
     as a csv file in the download directory of the computer.
     """
-    os.chdir(get_download_directory())
+    download_dir = get_download_directory()
+    if download_dir and os.path.isdir(download_dir):  # else use current working directory
+        os.chdir(get_download_directory())
     response_text = prepare_weatherdownload(station_id, start_date, last_date,
                                             is_metar)
     if "error" in response_text.lower():
