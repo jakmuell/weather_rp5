@@ -51,6 +51,8 @@ def get_csv_path(station_id: int, start: date, end: date) -> str:
         csv_path(str): The temporary download path 
     """
     download_dir = get_download_directory()
+    if not download_dir or not os.path.isdir(download_dir):
+        download_dir = os.getcwd()
     filename = (f'weather_{station_id}_{start.strftime("%Y%m%d")}_'
                 f'{end.strftime("%Y%m%d")}.csv')
     return  os.path.join(download_dir, filename)
