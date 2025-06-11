@@ -9,14 +9,14 @@ import gzip
 import shutil
 from typing import List, Tuple
 
+
 def get_download_directory() -> str:
-    """Returns the path to the default download directory of the computer.
-    """
-    if os.name == 'posix':  # macOS or Linux
-        return os.path.expanduser('~/Downloads')
-    if os.name == 'nt':   # Windows
-        return os.path.join(os.environ['HOMEPATH'], 'Downloads')
-    return ''
+    """Returns the path to the default download directory of the computer."""
+    if os.name == "posix":  # macOS or Linux
+        return os.path.expanduser("~/Downloads")
+    if os.name == "nt":  # Windows
+        return os.path.join(os.environ["HOMEPATH"], "Downloads")
+    return ""
 
 
 def unpack_gz(gz_file_path: str, destination_path: str) -> None:
@@ -26,15 +26,14 @@ def unpack_gz(gz_file_path: str, destination_path: str) -> None:
         gz_file_path (str): path to the .gz file
         destination_path (str): path where the unpacked file will be saved
     """
-    with gzip.open(gz_file_path, 'rb') as f_in:
-        with open(destination_path, 'wb') as f_out:
+    with gzip.open(gz_file_path, "rb") as f_in:
+        with open(destination_path, "wb") as f_out:
             shutil.copyfileobj(f_in, f_out)
     os.remove(gz_file_path)
 
 
 def get_phpsessid(cookies: httpx.Cookies) -> str | None:
     return cookies.get("PHPSESSID")
-
 
 
 def get_csv_path(station_id: int, start: date, end: date) -> str:
@@ -46,14 +45,13 @@ def get_csv_path(station_id: int, start: date, end: date) -> str:
         end (date): the last date of the request period.
 
     Returns:
-        csv_path(str): The temporary download path 
+        csv_path(str): The temporary download path
     """
     download_dir = get_download_directory()
     if not download_dir or not os.path.isdir(download_dir):
         download_dir = os.getcwd()
-    filename = (f'weather_{station_id}_{start.strftime("%Y%m%d")}_'
-                f'{end.strftime("%Y%m%d")}.csv')
-    return  os.path.join(download_dir, filename)
+    filename = f'weather_{station_id}_{start.strftime("%Y%m%d")}_' f'{end.strftime("%Y%m%d")}.csv'
+    return os.path.join(download_dir, filename)
 
 
 def extract_number(string):
@@ -63,8 +61,9 @@ def extract_number(string):
     return string
 
 
-def split_time_period(start_date: date, end_date: date,
-                      num_intervals: int) -> Tuple[List[date], List[date]]:
+def split_time_period(
+    start_date: date, end_date: date, num_intervals: int
+) -> Tuple[List[date], List[date]]:
     """Splits a time period into smaller time intervals.
 
     Args:
