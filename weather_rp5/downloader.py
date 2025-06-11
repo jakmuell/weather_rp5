@@ -9,8 +9,7 @@ from random import choice
 from time import sleep
 from typing import Literal
 
-import requests
-from requests.models import Response
+import httpx
 
 from .utils import (get_phpsessid,
                     unpack_gz,
@@ -37,66 +36,81 @@ def prepare_weatherdownload(station_id, start_date: date, last_date: date,
     for the actual download and returns the response of the post request
     which we can later use to retrieve the download url.
     """
-    current_session = requests.Session()
-    try:
-        if not current_session.cookies.items():
-            current_session.get(URL_BASE)
-    except Exception as e:
-        print(f'{URL_BASE=}')
-        print(f'Error in get: {e}')
-    phpsessid = get_phpsessid(current_session.cookies.items())
-    if phpsessid is None:
-        current_session.close()
-        current_session = requests.Session()
-        current_session.get(URL_BASE)
-        phpsessid = get_phpsessid(current_session.cookies.items())
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                      "AppleWebKit/537.36 (KHTML, like Gecko) "
+                      "Chrome/114.0.0.0 Safari/537.36"
+    }
 
-    if phpsessid is not None:
-        current_session.headers = get_header(phpsessid, choice(BROWSERS))
-    else:
-        print('Error: phpsessid is None!')
+    with httpx.Client(headers=headers, timeout=10.0) as client:
+        # Trigger session cookies
+        try:
+            client.get(f"{URL_BASE}/Weather_in_the_world")
+        except httpx.HTTPError as e:
+            print(f"Initial GET request failed: {e}")
+            return ""
 
-    response: Response = None
-    count = 5
-    delay = 3
-    match encoding:
-        case "ANSI": f_pe1 = 1
-        case "UTF-8": f_pe1 = 2
-        case "Unicode": f_pe1 = 3
-    while (response is None or response.text.find('http') == -1) and count > 0:
+        phpsessid = get_phpsessid(client.cookies)
+
+        if phpsessid is None:
+            print("Failed to retrieve PHPSESSID cookie.")
+            return ""
+
+        # Set updated headers with session
+        # client.headers.update(get_header(phpsessid, choice(BROWSERS)))
+        headers_update = get_header(phpsessid, choice(BROWSERS))
+        # Remove headers that can interfere
+        headers_update.pop('Content-Length', None)
+        headers_update.pop('Content-Type', None)
+        client.headers.update(headers_update)
+
+        # Map encoding to f_pe1
+        encoding_map = {"ANSI": 1, "UTF-8": 2, "Unicode": 3}
+        f_pe1 = encoding_map[encoding]
+
+        # Build POST data
+        data = {
+            'a_date1': start_date.strftime('%d.%m.%Y'),
+            'a_date2': last_date.strftime('%d.%m.%Y'),
+            'f_ed3': 4,
+            'f_ed4': 4,
+            'f_ed5': 20,
+            'f_pe': 1,
+            'f_pe1': f_pe1,
+            'lng_id': 1
+        }
+
         if is_metar:
-            data = {
-                'metar': station_id,
-                'a_date1': start_date.strftime('%d.%m.%Y'),
-                'a_date2': last_date.strftime('%d.%m.%Y'),
-                'f_ed3': 4,
-                'f_ed4': 4,
-                'f_ed5': 20,
-                'f_pe': 1,
-                'f_pe1': f_pe1,
-                'lng_id': 1,
-                'type': 'csv'
-            }
-            response = current_session.post(
-                f'{URL_BASE}/responses/reFileMetar.php', data)
+            data['metar'] = station_id
+            url = f"{URL_BASE}/responses/reFileMetar.php"
+            data['type'] = 'csv'
         else:
-            data = {
-                'wmo_id': station_id,
-                'a_date1': start_date.strftime('%d.%m.%Y'),
-                'a_date2': last_date.strftime('%d.%m.%Y'),
-                'f_ed3': 4,
-                'f_ed4': 4,
-                'f_ed5': 20,
-                'f_pe': 1,
-                'f_pe1': f_pe1,
-                'lng_id': 1
-            }
-            response = current_session.post(
-                f'{URL_BASE}/responses/reFileSynop.php', data)
-        count -= 1
-        sleep(delay)
-        delay += 3
-    return response.text
+            data['wmo_id'] = station_id
+            url = f"{URL_BASE}/responses/reFileSynop.php"
+        
+        data = {k: str(v) for k, v in data.items()}
+
+        # Retry logic
+        response = None
+        attempts = 5
+        delay = 3
+        while attempts > 0:
+            try:
+                response = client.post(url, data=data)
+                if "http" in response.text:
+                    break
+            except httpx.HTTPError as e:
+                print(f"POST request failed (retrying): {e}")
+
+            sleep(delay)
+            delay += 3
+            attempts -= 1
+
+        if response is None or "http" not in response.text:
+            print("Failed to retrieve valid download response.")
+            return ""
+
+        return response.text
 
 
 def download_weather(station_id, start_date: date, last_date: date,
@@ -116,7 +130,7 @@ def download_weather(station_id, start_date: date, last_date: date,
     url_end_idx = response_text.find(' download')
     url = response_text[url_start_idx:url_end_idx]
     filename = get_csv_path(station_id, start_date, last_date)
-    response = requests.get(url, allow_redirects=True, timeout=20)
+    response = httpx.get(url, follow_redirects=True, timeout=20)
     if response.status_code != 200:
         logging.error("Cannot download file.")
         return None

@@ -4,7 +4,7 @@ setup(
     name='weather_rp5',
     version='1.3',
     packages=find_packages(),
-    install_requires=['pandas', 'requests', 'bs4'],
+    install_requires=['pandas', 'bs4', 'httpx'],
     author='Jakob Müller',
     author_email='jakob.mueller1004@gmail.com',
     description='Functions for retrieving weather data from rp5.ru',

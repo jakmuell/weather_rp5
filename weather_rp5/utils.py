@@ -3,6 +3,7 @@ that were moved here for readability.
 """
 
 from datetime import date, timedelta
+import httpx
 import os
 import gzip
 import shutil
@@ -31,12 +32,9 @@ def unpack_gz(gz_file_path: str, destination_path: str) -> None:
     os.remove(gz_file_path)
 
 
-def get_phpsessid(items):
-    phpsessid = None
-    for x in items:
-        if x[0] == 'PHPSESSID':
-            phpsessid = x[1]
-    return phpsessid
+def get_phpsessid(cookies: httpx.Cookies) -> str | None:
+    return cookies.get("PHPSESSID")
+
 
 
 def get_csv_path(station_id: int, start: date, end: date) -> str:
