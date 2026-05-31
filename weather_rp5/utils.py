@@ -10,13 +10,11 @@ import shutil
 from typing import List, Tuple
 
 
+import tempfile
+
 def get_download_directory() -> str:
-    """Returns the path to the default download directory of the computer."""
-    if os.name == "posix":  # macOS or Linux
-        return os.path.expanduser("~/Downloads")
-    if os.name == "nt":  # Windows
-        return os.path.join(os.environ["HOMEPATH"], "Downloads")
-    return ""
+    """Returns a writable temporary directory."""
+    return tempfile.gettempdir()
 
 
 def unpack_gz(gz_file_path: str, destination_path: str) -> None:
