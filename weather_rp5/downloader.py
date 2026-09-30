@@ -3,17 +3,17 @@ This module contains the functions for sending post requests to rp5 and for
 downloading the zip folder of weather data from the site
 """
 
-from datetime import date
 import logging
 import os
+from datetime import date
 from random import choice
 from time import sleep
 from typing import Literal
 
 import httpx
 
-from .utils import get_phpsessid, unpack_gz, get_download_directory, get_csv_path
 from .headers import get_header
+from .utils import get_csv_path, get_download_directory, get_phpsessid, unpack_gz
 
 BROWSERS = ["Chrome", "Firefox", "Opera", "Edge"]
 URL_BASE = "https://rp5.ru"
@@ -22,7 +22,9 @@ URL_BASE = "https://rp5.ru"
 class FailedPostRequestError(Exception):
     """Raised when the weather data archive page shows an error message."""
 
-    def __init__(self, message="Website returned 'error' when selecting weather data to archive"):
+    def __init__(
+        self, message="Website returned 'error' when selecting weather data to archive"
+    ):
         super().__init__(message)
 
 
@@ -115,13 +117,17 @@ def prepare_weatherdownload(
         return response.text
 
 
-def download_weather(station_id, start_date: date, last_date: date, is_metar: bool) -> None:
+def download_weather(
+    station_id, start_date: date, last_date: date, is_metar: bool
+) -> None:
     """
     This will download the weather data for a given station and time period
     as a csv file in the download directory of the computer.
     """
     download_dir = get_download_directory()
-    if download_dir and os.path.isdir(download_dir):  # else use current working directory
+    if download_dir and os.path.isdir(
+        download_dir
+    ):  # else use current working directory
         os.chdir(get_download_directory())
     response_text = prepare_weatherdownload(station_id, start_date, last_date, is_metar)
     if "error" in response_text.lower():
@@ -130,7 +136,21 @@ def download_weather(station_id, start_date: date, last_date: date, is_metar: bo
     url_end_idx = response_text.find(" download")
     url = response_text[url_start_idx:url_end_idx]
     filename = get_csv_path(station_id, start_date, last_date)
-    response = httpx.get(url, follow_redirects=True, timeout=20)
+    download_headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/114.0.0.0 Safari/537.36"
+        ),
+        "Referer": f"{URL_BASE}/",
+        "Accept": "*/*",
+    }
+    response = httpx.get(
+        url,
+        headers=download_headers,
+        follow_redirects=True,
+        timeout=20,
+    )
     if response.status_code != 200:
         logging.error("Cannot download file.")
         return None
